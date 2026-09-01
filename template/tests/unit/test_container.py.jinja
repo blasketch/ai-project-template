@@ -1,0 +1,23 @@
+"""Container wiring. Runs on the rendered project."""
+
+import pytest
+
+from {{ package_name }}.application import CreateUser, CreateUserRequest
+from {{ package_name }}.domain import ValidationError
+from {{ package_name }}.infrastructure.config.settings import Settings
+from {{ package_name }}.infrastructure.container import build_container
+
+
+def test_build_container_registers_use_cases():
+    container = build_container(Settings())
+    assert isinstance(container.resolve("create_user"), CreateUser)
+    assert container.settings is not None
+
+
+def test_create_user_happy_path_and_validation():
+    use_case = CreateUser()
+    result = use_case(CreateUserRequest(name="Ada", email="ada@example.com"))
+    assert result.name == "Ada"
+
+    with pytest.raises(ValidationError):
+        use_case(CreateUserRequest(name=" ", email="ada@example.com"))

@@ -1,0 +1,32 @@
+"""Settings fail-fast and caching. Runs against the rendered project."""
+
+import pytest
+
+from {{ package_name }}.domain import ConfigError
+from {{ package_name }}.infrastructure.config.settings import (
+    build_settings,
+    get_settings,
+)
+
+
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
+def test_nested_sections_have_defaults():
+    settings = build_settings()
+    assert settings.app.version == "0.1.0"
+    assert settings.logging.json_format is True
+
+
+def test_get_settings_is_cached():
+    assert get_settings() is get_settings()
+
+
+def test_invalid_value_raises_config_error(monkeypatch):
+    monkeypatch.setenv("APP_DEBUG", "not-a-bool")
+    with pytest.raises(ConfigError):
+        build_settings()
