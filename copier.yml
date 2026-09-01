@@ -1,0 +1,58 @@
+_subdirectory: template
+
+project_name:
+  type: str
+  help: Human-readable project name
+  validator: >-
+    {% if not (project_name | regex_search('^[A-Za-z][A-Za-z0-9_ .-]+$')) %}
+    Must start with a letter; use only letters, digits, underscores, spaces, dots, and hyphens.
+    {% endif %}
+
+package_name:
+  type: str
+  help: Python package name (lowercase, underscores only)
+  default: "{{ project_name | lower | replace(' ', '_') | replace('-', '_') | replace('.', '_') }}"
+  validator: >-
+    {% if not (package_name | regex_search('^[a-z][a-z0-9_]+$')) %}
+    Must start with a lowercase letter; use only lowercase letters, digits, and underscores.
+    {% endif %}
+
+description:
+  type: str
+  help: Short project description
+
+author:
+  type: str
+  help: Author name (e.g. "Jane Doe")
+
+python_version:
+  type: str
+  help: Minimum Python version
+  choices:
+    - "3.12"
+    - "3.13"
+  default: "3.12"
+
+include_api:
+  type: bool
+  help: Include FastAPI layer with routers and middleware
+  default: true
+
+include_database:
+  type: bool
+  help: Include async SQLAlchemy + Alembic + testcontainers
+  default: true
+
+include_cli:
+  type: bool
+  help: Include Typer CLI entrypoint
+  default: false
+
+license:
+  type: str
+  help: Project license
+  choices:
+    - MIT
+    - Apache-2.0
+    - Proprietary
+  default: MIT
