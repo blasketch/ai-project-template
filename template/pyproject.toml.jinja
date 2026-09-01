@@ -52,6 +52,10 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/{{ package_name }}"]
 
+[tool.importlinter]
+root_package = "{{ package_name }}"
+include_external_packages = true
+
 [[tool.importlinter.contracts]]
 name = "layers"
 type = "layers"

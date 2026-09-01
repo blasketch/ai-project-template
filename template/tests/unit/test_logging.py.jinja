@@ -1,0 +1,32 @@
+"""Logging redaction and renderer selection. Runs on the rendered project."""
+
+import json
+
+import structlog
+
+from {{ package_name }}.infrastructure.config.settings import LoggingSettings
+from {{ package_name }}.infrastructure.logging import configure_logging
+
+
+def test_redaction_scrubs_configured_patterns(capsys):
+    configure_logging(LoggingSettings(redaction_patterns=["password"]))
+    structlog.get_logger().info("leak", token="value-with-password-inside")
+    out = capsys.readouterr().out
+    assert "password" not in out
+    assert "***" in out
+
+
+def test_json_renderer_emits_parseable_output(capsys):
+    configure_logging(LoggingSettings(json_format=True))
+    structlog.get_logger().info("hello-json")
+    out = capsys.readouterr().out.strip()
+    parsed = json.loads(out)
+    assert parsed["event"] == "hello-json"
+    assert "timestamp" in parsed
+
+
+def test_console_renderer_used_for_debug(capsys):
+    configure_logging(LoggingSettings(json_format=False))
+    structlog.get_logger().info("plain")
+    out = capsys.readouterr().out.strip()
+    assert "plain" in out
