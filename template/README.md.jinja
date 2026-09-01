@@ -1,0 +1,33 @@
+# {{ package_name }}
+
+{{ description }}
+
+## Quickstart
+
+```bash
+uv sync
+uv run pytest
+uv run check
+```
+
+{% if include_cli %}
+## CLI
+
+```bash
+uv run dev --help
+```
+{% endif %}
+
+{% if include_api %}
+## API
+
+```bash
+uv run uvicorn {{ package_name }}.presentation.api.app:create_app --factory --reload
+```
+{% endif %}
+
+## Architecture
+
+4-layer Clean Architecture: `domain` → `application` → `infrastructure` → `presentation`
+
+Run `uv run lint-imports` to verify layer boundaries.

@@ -1,0 +1,20 @@
+[project]
+name = "ai-project-template"
+version = "0.1.0"
+description = "Copier template for Python Clean Architecture projects"
+requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "MIT"}
+
+[dependency-groups]
+dev = [
+    "copier>=9.0.0",
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+# No [build-system] — this is a Copier template repo, not an installable package.
+# Dev dependencies are managed via [dependency-groups] (PEP 735).
