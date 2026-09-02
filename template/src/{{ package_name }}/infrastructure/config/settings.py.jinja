@@ -6,10 +6,7 @@ invalid at boot.
 
 from functools import lru_cache
 
-from pydantic import Field
-{%- if include_database %}
-from pydantic import SecretStr
-{%- endif %}
+from pydantic import Field{% if include_database %}, SecretStr{% endif %}
 from pydantic import ValidationError as PydanticValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 

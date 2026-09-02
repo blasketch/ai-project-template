@@ -3,9 +3,9 @@
 Auto-marks tests by directory (tests/unit, tests/integration, tests/e2e)
 and provides polyfactory factories for building domain objects.
 """
-{%- if include_database %}
+{% if include_database %}
 import os
-{%- endif %}
+{% endif %}
 import pytest
 from polyfactory.factories import DataclassFactory
 

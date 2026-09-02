@@ -20,7 +20,7 @@ def _redact(patterns: list[str]) -> Processor:
     compiled = [re.compile(p, re.IGNORECASE) for p in patterns]
 
     def processor(
-        logger: WrappedLogger, method: str, event_dict: EventDict
+        _logger: WrappedLogger, _method: str, event_dict: EventDict
     ) -> EventDict:
         for key, value in event_dict.items():
             if isinstance(value, str):

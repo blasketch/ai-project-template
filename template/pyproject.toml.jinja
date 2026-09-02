@@ -58,17 +58,26 @@ src = ["src", "tests"]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "C90", "PTH", "ASYNC", "RET", "ARG", "RUF", "S"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"]  # asserts are the point of tests
+"tests/**" = ["S101", "S106"]  # asserts and fake secrets are the point of tests
 
 [tool.mypy]
 strict = true
 mypy_path = "src"
 explicit_package_bases = true
+plugins = ["pydantic.mypy"]
 exclude = '^(\.venv/|\.git/|build/|dist/|.*\.egg-info/)'
 
 [[tool.mypy.overrides]]
 module = ["tests.*"]
 disallow_untyped_defs = false
+{%- if include_api %}
+
+[[tool.mypy.overrides]]
+# The API layer lands in a later phase; the deferred import in this
+# conftest resolves once presentation/api exists.
+module = ["tests.e2e.conftest"]
+disable_error_code = ["import-untyped"]
+{%- endif %}
 {%- if include_database %}
 
 [[tool.mypy.overrides]]
