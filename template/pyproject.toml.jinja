@@ -30,10 +30,14 @@ check = "scripts.check:main"
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
+    "polyfactory>=2.16",
     "ruff>=0.8",
     "mypy>=1.13",
     "pre-commit>=4.0",
     "import-linter>=2.0",
+{%- if include_api or include_database %}
+    "pytest-asyncio>=0.24",
+{%- endif %}
 {%- if include_api %}
     "httpx>=0.28",
 {%- endif %}
@@ -70,6 +74,18 @@ disallow_untyped_defs = false
 [[tool.mypy.overrides]]
 module = ["{{ package_name }}.infrastructure.db.migrations.*"]
 disallow_untyped_defs = false
+{%- endif %}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m unit --strict-markers"
+markers = [
+    "unit: fast, isolated unit tests",
+    "integration: tests against real infrastructure (testcontainers)",
+    "e2e: end-to-end tests through the ASGI transport",
+]
+{%- if include_api or include_database %}
+asyncio_mode = "auto"
 {%- endif %}
 
 [build-system]
