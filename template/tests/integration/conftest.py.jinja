@@ -1,4 +1,4 @@
-{%- if include_database %}
+{%- if include_database -%}
 """Integration test infrastructure.
 
 Session-scoped Postgres via testcontainers, Alembic migrations applied
@@ -72,7 +72,7 @@ async def db_session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
         async with session_factory() as session:
             yield session
         await transaction.rollback()
-{%- else %}
+{%- else -%}
 """Integration test infrastructure.
 
 Empty module: this project was rendered with include_database=false.

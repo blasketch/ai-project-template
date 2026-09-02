@@ -19,9 +19,7 @@ def _redact(patterns: list[str]) -> Processor:
     """Build a processor that replaces matches of each pattern with ***."""
     compiled = [re.compile(p, re.IGNORECASE) for p in patterns]
 
-    def processor(
-        _logger: WrappedLogger, _method: str, event_dict: EventDict
-    ) -> EventDict:
+    def processor(_logger: WrappedLogger, _method: str, event_dict: EventDict) -> EventDict:
         for key, value in event_dict.items():
             if isinstance(value, str):
                 for pattern in compiled:

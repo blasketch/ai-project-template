@@ -1,4 +1,4 @@
-{%- if include_api %}
+{%- if include_api -%}
 """E2E test infrastructure.
 
 httpx AsyncClient over ASGITransport (no network) plus a fixture to
@@ -34,7 +34,7 @@ async def client(app: Any) -> AsyncIterator[AsyncClient]:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as http:
         yield http
-{%- else %}
+{%- else -%}
 """E2E test infrastructure.
 
 Empty module: this project was rendered with include_api=false.
