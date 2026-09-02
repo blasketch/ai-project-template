@@ -88,6 +88,18 @@ markers = [
 asyncio_mode = "auto"
 {%- endif %}
 
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 85
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
