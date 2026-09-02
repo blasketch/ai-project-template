@@ -45,6 +45,33 @@ dev = [
 {%- endif %}
 ]
 
+[tool.ruff]
+line-length = 100
+target-version = "py{{ python_version | replace('.', '') }}"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C90", "PTH", "ASYNC", "RET", "ARG", "RUF", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]  # asserts are the point of tests
+
+[tool.mypy]
+strict = true
+mypy_path = "src"
+explicit_package_bases = true
+exclude = '^(\.venv/|\.git/|build/|dist/|.*\.egg-info/)'
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+{%- if include_database %}
+
+[[tool.mypy.overrides]]
+module = ["{{ package_name }}.infrastructure.db.migrations.*"]
+disallow_untyped_defs = false
+{%- endif %}
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

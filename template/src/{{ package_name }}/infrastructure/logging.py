@@ -9,13 +9,13 @@ import sys
 
 import structlog
 from structlog.stdlib import ProcessorFormatter
-from structlog.types import EventDict, WrappedLogger
+from structlog.types import EventDict, Processor, WrappedLogger
 
 from ..domain import ConfigError
 from .config.settings import LoggingSettings
 
 
-def _redact(patterns: list[str]):
+def _redact(patterns: list[str]) -> Processor:
     """Build a processor that replaces matches of each pattern with ***."""
     compiled = [re.compile(p, re.IGNORECASE) for p in patterns]
 
@@ -32,7 +32,7 @@ def _redact(patterns: list[str]):
     return processor
 
 
-def _renderer(json_format: bool):
+def _renderer(json_format: bool) -> Processor:
     if json_format:
         return structlog.processors.JSONRenderer()
     return structlog.dev.ConsoleRenderer()
@@ -52,7 +52,7 @@ def configure_logging(config: LoggingSettings) -> None:
     renderer = _renderer(config.json_format)
     redactor = _redact(config.redaction_patterns)
 
-    shared = [
+    shared: list[Processor] = [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
