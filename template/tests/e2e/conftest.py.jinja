@@ -1,0 +1,42 @@
+{%- if include_api %}
+"""E2E test infrastructure.
+
+httpx AsyncClient over ASGITransport (no network) plus a fixture to
+swap FastAPI dependency_overrides and restore them after each test.
+"""
+
+from collections.abc import AsyncIterator, Iterator
+from typing import Any
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
+
+@pytest.fixture
+def app() -> Any:
+    """Create the ASGI app; import deferred until the API layer exists."""
+    from {{ package_name }}.presentation.api.app import create_app
+
+    return create_app()
+
+
+@pytest.fixture
+def dependency_overrides(app: Any) -> Iterator[dict[Any, Any]]:
+    """Expose app.dependency_overrides; restore originals after the test."""
+    overrides: dict[Any, Any] = app.dependency_overrides
+    yield overrides
+    overrides.clear()
+
+
+@pytest.fixture
+async def client(app: Any) -> AsyncIterator[AsyncClient]:
+    """AsyncClient bound to the ASGI app via ASGITransport."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as http:
+        yield http
+{%- else %}
+"""E2E test infrastructure.
+
+Empty module: this project was rendered with include_api=false.
+"""
+{%- endif %}
