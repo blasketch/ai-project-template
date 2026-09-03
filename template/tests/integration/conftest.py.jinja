@@ -1,0 +1,80 @@
+{%- if include_database -%}
+"""Integration test infrastructure.
+
+Session-scoped Postgres via testcontainers, Alembic migrations applied
+once per session, and a function-scoped session wrapped in a SAVEPOINT
+that rolls back after every test.
+"""
+
+from collections.abc import AsyncIterator, Iterator
+from pathlib import Path
+
+import pytest
+from alembic import command as alembic_command
+from alembic.config import Config as AlembicConfig
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from testcontainers.community.postgres import PostgresContainer
+
+
+@pytest.fixture(scope="session")
+def postgres_url() -> Iterator[str]:
+    """Boot a Postgres container once per session; yield an asyncpg URL."""
+    with PostgresContainer("postgres:16-alpine") as postgres:
+        url = postgres.get_connection_url().replace(
+            "postgresql+psycopg2://", "postgresql+asyncpg://"
+        )
+        yield url
+
+
+@pytest.fixture(scope="session")
+def migrated_url(postgres_url: str) -> str:
+    """Run Alembic migrations once per session; skip until they exist."""
+    migrations_dir = (
+        Path(__file__).resolve().parents[2]
+        / "src"
+        / "{{ package_name }}"
+        / "infrastructure"
+        / "db"
+        / "migrations"
+    )
+    if not migrations_dir.is_dir():
+        pytest.skip("Alembic migrations are not scaffolded yet")
+    config = AlembicConfig()
+    config.set_main_option("script_location", str(migrations_dir))
+    config.set_main_option("sqlalchemy.url", postgres_url)
+    alembic_command.upgrade(config, "head")
+    return postgres_url
+
+
+@pytest.fixture
+async def engine(migrated_url: str) -> AsyncIterator[AsyncEngine]:
+    """Function-scoped engine bound to the test's own event loop."""
+    engine = create_async_engine(migrated_url)
+    yield engine
+    await engine.dispose()
+
+
+@pytest.fixture
+async def db_session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
+    """Session wrapped in a SAVEPOINT; rolled back after each test."""
+    async with engine.connect() as connection:
+        transaction = await connection.begin()
+        session_factory = async_sessionmaker(
+            bind=connection,
+            expire_on_commit=False,
+            join_transaction_mode="conditional_savepoint",
+        )
+        async with session_factory() as session:
+            yield session
+        await transaction.rollback()
+{%- else -%}
+"""Integration test infrastructure.
+
+Empty module: this project was rendered with include_database=false.
+"""
+{%- endif %}

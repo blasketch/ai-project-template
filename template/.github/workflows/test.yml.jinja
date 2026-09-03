@@ -1,0 +1,73 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install Python
+        run: uv python install {% raw %}${{ matrix.python-version }}{% endraw %}
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Unit tests
+        run: uv run pytest -m unit
+{% if include_database %}
+  integration:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install Python
+        run: uv python install {% raw %}${{ matrix.python-version }}{% endraw %}
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Integration tests
+        run: uv run pytest -m integration --suppress-no-test-exit-code
+{% endif %}
+{% if include_api %}
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install Python
+        run: uv python install {% raw %}${{ matrix.python-version }}{% endraw %}
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: E2E tests
+        run: uv run pytest -m e2e --suppress-no-test-exit-code
+{% endif %}
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install Python
+        run: uv python install {{ python_version }}
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Unit + integration coverage (fail_under=85)
+        run: uv run pytest -m "unit or integration" --cov --cov-report=term-missing

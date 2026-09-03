@@ -1,0 +1,36 @@
+"""Shared test configuration.
+
+Auto-marks tests by directory (tests/unit, tests/integration, tests/e2e)
+and provides polyfactory factories for building domain objects.
+"""
+{% if include_database %}
+import os
+{% endif %}
+import pytest
+from polyfactory.factories import DataclassFactory
+
+from {{ package_name }}.domain import User
+{%- if include_database %}
+
+# Dummy URL: unit tests validate settings wiring but never open a connection.
+os.environ.setdefault("DB_URL", "postgresql+asyncpg://test:test@localhost:5432/test")
+{%- endif %}
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Auto-apply the directory-based marker to each collected test."""
+    for item in items:
+        for marker in ("unit", "integration", "e2e"):
+            if marker in item.path.parts:
+                item.add_marker(getattr(pytest.mark, marker))
+                break
+
+
+class UserFactory(DataclassFactory[User]):
+    """Builds User entities with fake data for tests."""
+
+
+@pytest.fixture(scope="session")
+def user_factory() -> type[UserFactory]:
+    """Session-scoped access to the User factory."""
+    return UserFactory
